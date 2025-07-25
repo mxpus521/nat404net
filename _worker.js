@@ -81,7 +81,7 @@ export default {
                 const url = new URL(request.url);
                 switch (url.pathname) {
                     case `/${userID}`: {
-                        const vlessConfig = get\u0076\u006c\u0065\u0073\u0073Config(userID, request.headers.get("Host"));
+                        const vlessConfig = getVlessConfig(userID, request.headers.get("Host"));
                         return new Response(vlessConfig, {
                             status: 200,
                             headers: {
@@ -177,7 +177,7 @@ export default {
                         return proxyResponse;
                 }
             }
-            return await handle\u0076\u006c\u0065\u0073\u0073WebSocket(request);
+            return await handleVlessWebSocket(request);
         } catch (err) {
             /** @type {Error} */
             let e = err;
@@ -186,7 +186,7 @@ export default {
     },
 };
 
-async function handle\u0076\u006c\u0065\u0073\u0073WebSocket(request) {
+async function handleVlessWebSocket(request) {
     const wsPair = new WebSocketPair();
     const [clientWS, serverWS] = Object.values(wsPair);
 
@@ -213,7 +213,7 @@ async function handle\u0076\u006c\u0065\u0073\u0073WebSocket(request) {
                 return;
             }
 
-            const result = parse\u0076\u006c\u0065\u0073\u0073Header(chunk, userID);
+            const result = parseVlessHeader(chunk, userID);
             if (result.hasError) {
                 throw new Error(result.message);
             }
@@ -260,7 +260,7 @@ async function handle\u0076\u006c\u0065\u0073\u0073WebSocket(request) {
                     }
                     return num.toString(16).padStart(2, '0');
                 });
-                const prefixes = ['2001:67c:2960:6464::'];
+                const prefixes = ['2602:fc59:b0:64::'];
                 const chosenPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
                 return `[${chosenPrefix}${hex[0]}${hex[1]}:${hex[2]}${hex[3]}]`;
             }
@@ -366,7 +366,7 @@ function createWebSocketReadableStream(ws, earlyDataHeader) {
     });
 }
 
-function parse\u0076\u006c\u0065\u0073\u0073Header(buffer, userID) {
+function parseVlessHeader(buffer, userID) {
     if (buffer.byteLength < 24) {
         return {
             hasError: true,
@@ -552,13 +552,13 @@ async function handleUDPOutBound(webSocket, vlessResponseHeader) {
         }
     };
 }
-
 /**
+ *
  * @param {string} userID
  * @param {string | null} hostName
  * @returns {string}
  */
-function get\u0076\u006c\u0065\u0073\u0073Config(userID, hostName) {
+function getVlessConfig(userID, hostName) {
     // VLESS
     const vlessWs = `vless://${userID}@${CDNIP}:8880?encryption=none&security=none&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#${hostName}`;
     const vlessWsTls = `vless://${userID}@${CDNIP}:8443?encryption=none&security=tls&type=ws&host=${hostName}&sni=${hostName}&fp=random&path=%2F%3Fed%3D2560#${hostName}`;
